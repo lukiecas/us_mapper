@@ -38,6 +38,14 @@ int main() {
         if(keyboard.isKeyPressed(sf::Keyboard::A)) {
             view.setCenter(640.f / 2.f, 480.f / 2.f);
         }
+        if(event.type == sf::Event::MouseWheelScrolled) {
+            if (event.mouseWheelScroll.delta < 0) {
+                view.zoom(1.1f);
+            }
+            if (event.mouseWheelScroll.delta > 0) {
+                view.zoom(0.9f);
+            }
+        }
         
         
         if(mouse.isButtonPressed(mouse.Left) == 1) {
