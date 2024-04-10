@@ -1,22 +1,71 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <list>
+#include <sys/socket.h>
+#include <boost/asio.hpp>
+#include <map>
+#include<string>
+std::map<int, std::list<int>> dots;
+int i = 0;
+void serialPortReader() {
+    std::list<int> dotValues;
+    boost::asio::io_service io;
+    char c;
+    std::string x;
+    boost::asio::serial_port serial(io, "/dev/ttyACM0");
+    
+    serial.set_option(boost::asio::serial_port_base::baud_rate(9600));
+    while(true) {
+        boost::asio::read(serial, boost::asio::buffer(&c, 1));
+        // std::cout << c;
+        std::string ch(1, c);
+        if(c == '\n') {
+            
+            x = x + ch;
+            
+            std::string angle = x.substr(0, x.find(','));
+            int characterAmount = x.length() - 1 - x.find('\n');
+            std::string distance = x.substr(x.find(',') + 1, characterAmount - 1);
+            
+            std::cout << "angle: " << angle << std::endl;
+            std::cout << "distance:" << distance << std::endl;
+            int angleInt = std::stoi(angle);
+            int distanceInt = std::stoi(distance);
+
+            dotValues.push_back(angleInt);
+            dotValues.push_back(distanceInt);
+
+            dots.insert({i, dotValues});
+
+            dotValues.clear();
+            i += 1;
+            x = "";
+            
+
+            
+        } else {
+
+            x = x + ch;
+        }
+
+    }
+    
+}
 int main() {
     sf::RenderWindow window(
         sf::VideoMode(640, 480),
         "testing");
-    
-    sf::View view(sf::FloatRect(0, 0, 640, 480));
-    float viewCenter_x = 640 / 2;
-    float viewCenter_y = 480 / 2;
-    sf::CircleShape circle(200);
+    sf::View view(sf::FloatRect(0, 0, 6400, 4800));
+    float viewCenter_x = 6400 / 2;
+    float viewCenter_y = 4800 / 2;
+    sf::CircleShape circle(10);
     sf::RectangleShape rectangle(sf::Vector2f(200.f, 100.f));
     rectangle.setPosition(640.f / 2, + 480.f / 2);
     rectangle.setFillColor(sf::Color::Red);
-    circle.setFillColor(sf::Color::Red);
     sf::Mouse mouse;
     sf::Vector2i mPos_old;
     sf::Keyboard keyboard;
+    
     while(window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -52,9 +101,9 @@ int main() {
             std::cout << "Left mouse button has been clicked" << std::endl;
         }
         window.setView(view);
-        window.clear();
-        window.draw(rectangle);
-        // window.draw(circle);
+        for(int j = 0; j == i; j++) {
+            
+        }
         window.display();
         mPos_old = mouse.getPosition(window);
         }
