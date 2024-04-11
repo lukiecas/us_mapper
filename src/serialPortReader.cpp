@@ -2,7 +2,7 @@
 #include <boost/asio.hpp>
 #include <list>
 #include<string>
-int serialPortReader() {
+int main() {
     boost::asio::io_service io;
     char c;
     std::string x;
@@ -10,7 +10,7 @@ int serialPortReader() {
     boost::asio::serial_port serial(io, "/dev/ttyACM0");
     
     serial.set_option(boost::asio::serial_port_base::baud_rate(9600));
-    while(f) {
+    while(true) {
         boost::asio::read(serial, boost::asio::buffer(&c, 1));
         // std::cout << c;
         std::string ch(1, c);
