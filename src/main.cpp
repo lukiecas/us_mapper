@@ -8,16 +8,21 @@
 #include <cmath>
 #include <vector>
 #include <thread>
-float viewCenter_x = 6400.f / 2.f;
-float viewCenter_y = 4800.f / 2.f;
+float viewCenter_x = 640.f / 2.f;
+float viewCenter_y = 480.f / 2.f;
 std::list<sf::CircleShape> circles;
+sf::RenderWindow window(
+        sf::VideoMode(640, 480),
+        "testing");
+sf::View view(sf::FloatRect(0, 0, 640, 480));
 
 void serialPortReader() {
     boost::asio::io_service io;
     char c;
     std::string x;
     boost::asio::serial_port serial(io, "/dev/ttyACM0");
-    
+    window.setView(view);
+
     serial.set_option(boost::asio::serial_port_base::baud_rate(9600));
     while(true) {
         boost::asio::read(serial, boost::asio::buffer(&c, 1));
@@ -34,14 +39,14 @@ void serialPortReader() {
             
             int angleInt = std::stoi(angle);
             int distanceInt = std::stoi(distance);
-            float angleRad = distanceInt * (M_PI / 180);
+            float angleRad = angleInt * (M_PI / 180);
             float distanceX = distanceInt * std::cos(angleRad);
             float distanceY = distanceInt * std::sin(angleRad);
-            std::cout << "distanceX: " << distanceX << std::endl;
-            std::cout << "distanceY: " << distanceY << std::endl;
+            std::cout << "(" << viewCenter_x + distanceX << ";" << viewCenter_y + distanceY << ")" << std::endl;
+            
             sf::CircleShape circle(1);
             circle.setPosition(viewCenter_x + distanceX, viewCenter_y + distanceY);
-            if(circles.size() == 100) {
+            if(circles.size() == 200) {
                 circles.pop_front();
             }
             if(distanceInt < 450) {
@@ -62,15 +67,15 @@ void serialPortReader() {
 }
 int main() {
     std::thread myThread(serialPortReader);
-    sf::RenderWindow window(
-        sf::VideoMode(640, 480),
-        "testing");
-    sf::View view(sf::FloatRect(0, 0, 6400, 4800));
+    window.setView(view);
+
     sf::RectangleShape rectangle(sf::Vector2f(200.f, 100.f));
     sf::Mouse mouse;
     sf::Vector2i mPos_old;
     sf::Keyboard keyboard;
-    
+    sf::CircleShape sonar(1);
+    sonar.setFillColor(sf::Color::Red);
+    sonar.setPosition(viewCenter_x, viewCenter_y);
     while(window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -107,9 +112,7 @@ int main() {
         }
         window.clear();
         window.setView(view);
-        sf::CircleShape sonar(1);
-        sonar.setFillColor(sf::Color::Red);
-        sonar.setPosition(viewCenter_x, viewCenter_y);
+
         window.draw(sonar);
         for(sf::CircleShape circle : circles){
             window.draw(circle);
